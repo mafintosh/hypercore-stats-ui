@@ -5,7 +5,10 @@
   "main": "index.js",
   "dependencies": {
     "browserify": "^13.0.1",
-    "corsify": "^2.1.0"
+    "corsify": "^2.1.0",
+    "event-source-stream": "^1.5.0",
+    "pretty-bytes": "^3.0.1",
+    "speedometer": "^1.0.0"
   },
   "scripts": {
     "install": "browserify app.js -o bundle.js"
