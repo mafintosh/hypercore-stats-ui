@@ -22,6 +22,9 @@ http.createServer(stats(feed)).listen(1000)
 
 And visit http://localhost:10000 in the browser.
 
+<img src="https://mafintosh.github.io/assets/hypercore-stats.gif" width="600">
+<img src="https://mafintosh.github.io/assets/hypercore-stats-uploader.gif" width="600">
+
 ## API
 
 #### `var onrequest = stats(feed or archive)`
