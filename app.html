@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <style>
+    body {
+      font-family: monospace;
+    }
+
+    #template {
+      display: none;
+    }
+
+    .blocks {
+      width: 600px;
+    }
+
+    .upload {
+      background-color: green;
+    }
+
+    .clearfix {
+      clear: both;
+    }
+
+    .dot {
+      border: 1px solid black;
+      width: 10px;
+      height: 10px;
+      margin: 2px;
+      float: left;
+
+      /*transition: background-color 0.5s ease;*/
+    }
+  </style>
+</head>
+<body>
+<h3 id="key"></h3>
+<h4><span id="peers">Connected to 0 peers</span>
+<div id="template">
+  <h3 class="name"></h3>
+  <h4><span class="overview"></span> ↓ <span class="download-speed"></span> / ↑ <span class="upload-speed"></span></h4>
+  <div class="blocks"></div>
+  <div class="clearfix"></div>
+</div>
+<script src="bundle.js"></script>
+</body>
+</html>
