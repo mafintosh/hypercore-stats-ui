@@ -1,6 +1,6 @@
 {
   "name": "hypercore-stats-ui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HTML based stats ui for hypercore/hyperdrive",
   "main": "index.js",
   "dependencies": {
