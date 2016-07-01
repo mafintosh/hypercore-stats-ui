@@ -31,6 +31,14 @@ And visit http://localhost:10000 in the browser.
 
 Create a new stats interface for a hypercore feed or hyperdrive archive.
 
+## Develop
+
+To modify css, run:
+```
+npm run build-css
+npm run watch-css
+```
+
 ## License
 
 MIT

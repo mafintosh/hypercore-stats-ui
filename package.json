@@ -11,7 +11,9 @@
     "speedometer": "^1.0.0"
   },
   "scripts": {
-    "install": "browserify app.js -o bundle.js"
+    "install": "browserify app.js -o bundle.js && npm run build-css",
+    "build-css": "node-sass --importer node_modules/node-sass-magic-importer css/main.scss css/main.css",
+    "watch-css": "nodemon -e css/main.scss -x \"npm run build-css\""
   },
   "repository": {
     "type": "git",
@@ -22,5 +24,11 @@
   "bugs": {
     "url": "https://github.com/mafintosh/hypercore-stats-ui/issues"
   },
-  "homepage": "https://github.com/mafintosh/hypercore-stats-ui"
+  "homepage": "https://github.com/mafintosh/hypercore-stats-ui",
+  "devDependencies": {
+    "dat-design": "^1.2.4",
+    "node-sass": "^3.8.0",
+    "node-sass-magic-importer": "^0.1.4",
+    "nodemon": "^1.9.2"
+  }
 }
