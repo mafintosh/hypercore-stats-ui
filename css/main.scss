@@ -1,0 +1,33 @@
+ /*
+ * node-sass magic importer. features/how to:
+ * https://github.com/maoberlehner/node-sass-magic-importer
+ */
+@import "~dat-design";
+@import "~dat-design/scss/variables/colors.scss";
+
+// hypercore-stats-ui styles below:
+body {
+  font-family: monospace;
+}
+
+#template {
+  display: none;
+}
+
+.upload {
+  // variables defined in `dat-design` colors.scss are now
+  // available here due to @import on line 6:
+  background-color: $color-green;
+}
+
+.clearfix {
+  clear: both;
+}
+
+.dot {
+  border: 1px solid black;
+  width: 5px;
+  height: 5px;
+  margin: 1px;
+  float: left;
+}
