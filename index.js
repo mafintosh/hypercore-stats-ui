@@ -3,6 +3,8 @@ var prettyBytes = require('pretty-bytes')
 
 var $ = document.querySelector.bind(document)
 
+module.exports = Stats
+
 function Stats (el, interval) {
   if (!(this instanceof Stats)) return new Stats(el, interval)
   var self = this
@@ -68,7 +70,7 @@ Stats.prototype.onkey = function (data) {
   self.feeds = {}
 }
 
-function updateHeader (data) {
+Stats.prototype.updateHeader = function (data) {
   this.$$(data.name, '.overview').innerText = data.blocks.length + ' blocks (' + prettyBytes(data.bytes) + ')'
 }
 
@@ -93,7 +95,7 @@ Stats.prototype.onupload = function (data) {
 Stats.prototype.onfeed = function (data) {
   var self = this
   var blocks = this._get(data.name).blocks = data.blocks.length
-  updateHeader(data)
+  self.updateHeader(data)
 
   for (var i = 0; i < blocks; i++) {
     self._appendDot(data.name, i)
@@ -103,7 +105,7 @@ Stats.prototype.onfeed = function (data) {
 
 Stats.prototype.onupdate = function (data) {
   var self = this
-  updateHeader(data)
+  self.updateHeader(data)
 
   for (var i = self._get(data.name).blocks; i < data.blocks.length; i++) {
     self._get(data.name).blocks++
