@@ -30,6 +30,7 @@ function get (name) {
       downloadSpeed: speedometer(),
       div: div
     }
+    console.log('new feed', st)
   }
 
   return st
