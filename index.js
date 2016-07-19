@@ -1,101 +1,121 @@
-var http = require('http')
-var corsify = require('corsify')
-var fs = require('fs')
+var speedometer = require('speedometer')
+var prettyBytes = require('pretty-bytes')
 
-module.exports = stats
+var $ = document.querySelector.bind(document)
 
-function stats (feed) {
-  var archive = feed.metadata ? feed : null
+module.exports = Stats
 
-  if (archive) {
-    feed = archive.metadata
+function Stats (el, interval) {
+  if (!(this instanceof Stats)) return new Stats(el, interval)
+  var self = this
+  self.feeds = {}
+  self.el = el
+
+  setInterval(function () {
+    var keys = Object.keys(self.feeds)
+    for (var i = 0; i < keys.length; i++) {
+      var st = self.feeds[keys[i]]
+      self.$$(keys[i], '.upload-speed').innerText = prettyBytes(st.uploadSpeed()) + '/s'
+      self.$$(keys[i], '.download-speed').innerText = prettyBytes(st.downloadSpeed()) + '/s'
+    }
+  }, interval || 500)
+}
+
+Stats.prototype.$$ = function (name, sel) {
+  return this.el.querySelector('#' + (name || 'unknown') + ' ' + sel)
+}
+
+Stats.prototype._get = function (name) {
+  var self = this
+  if (!name) name = 'unknown'
+  var st = self.feeds[name]
+  if (!st) {
+    var div = document.createElement('div')
+    div.id = name
+    div.innerHTML = self.el.querySelector('#template').innerHTML
+    div.className = 'feed'
+
+    if (name !== 'unknown') {
+      div.querySelector('.name').innerText = name
+    }
+
+    self.el.appendChild(div)
+
+    st = self.feeds[name] = {
+      blocks: 0,
+      uploadSpeed: speedometer(),
+      downloadSpeed: speedometer(),
+      div: div
+    }
   }
 
-  var cors = corsify({
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-    'Access-Control-Allow-Headers': 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization'
-  })
+  return st
+}
 
-  return cors(function (req, res) {
-    if (req.url === '/') return file('app.html', 'text/html', res)
-    if (req.url === '/bundle.js') return file('bundle.js', 'test/javascript', res)
-
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
-
-    send(res, {type: 'key', key: feed.key.toString('hex')})
-
-    if (archive) track(feed, 'metadata')
-    else track(feed, null)
-
-    send(res, {type: 'peer-update', peers: feed.peers.length})
-
-    feed.on('peer-add', onpeeradd)
-    feed.on('peer-remove', onpeerremove)
-
-    if (archive) {
-      archive.open(function () {
-        track(archive.content, 'content')
-      })
-    }
-
-    res.on('close', function () {
-      feed.removeListener('peer-add', onpeeradd)
-      feed.removeListener('peer-remove', onpeerremove)
-    })
-
-    function track (feed, name) {
-      send(res, {type: 'feed', name: name, key: feed.key.toString('hex'), blocks: bitfield(feed), bytes: feed.bytes})
-
-      feed.on('update', onupdate)
-      feed.on('download', ondownload)
-      feed.on('upload', onupload)
-
-      res.on('close', function () {
-        feed.removeListener('update', onupdate)
-        feed.removeListener('download', ondownload)
-        feed.removeListener('upload', onupload)
-      })
-
-      function onupdate () {
-        send(res, {type: 'update', name: name, key: feed.key.toString('hex'), blocks: bitfield(feed), bytes: feed.bytes})
-      }
-
-      function ondownload (index, data) {
-        send(res, {type: 'download', name: name, index: index, bytes: data.length})
-      }
-
-      function onupload (index, data) {
-        send(res, {type: 'upload', name: name, index: index, bytes: data.length})
-      }
-    }
-
-    function onpeeradd () {
-      send(res, {type: 'peer-update', peers: feed.peers.length})
-    }
-
-    function onpeerremove () {
-      send(res, {type: 'peer-update', peers: feed.peers.length})
-    }
-  })
-
-  function file (name, type, res) {
-    res.setHeader('Content-Type', type + '; charset=utf-8')
-    fs.readFile(__dirname + '/' + name, function (err, buf) {
-      if (err) return res.end()
-      res.end(buf)
-    })
+Stats.prototype._update = function () {
+  var self = this
+  var keys = Object.keys(self.feeds)
+  for (var i = 0; i < keys.length; i++) {
+    var st = self.feeds[keys[i]]
+    self.$$(keys[i], '.upload-speed').innerText = prettyBytes(st.uploadSpeed()) + '/s'
+    self.$$(keys[i], '.download-speed').innerText = prettyBytes(st.downloadSpeed()) + '/s'
   }
+}
 
-  function bitfield (feed) {
-    var list = []
-    for (var i = 0; i < feed.blocks; i++) {
-      list.push(feed.has(i))
-    }
-    return list
-  }
+Stats.prototype.onkey = function (data) {
+  var self = this
+  $('#key').innerText = data.key
 
-  function send (res, message) {
-    res.write('data: ' + JSON.stringify(message) + '\n\n')
+  while ($('.feed')) self.el.removeChild($('.feed'))
+  self.feeds = {}
+}
+
+Stats.prototype.updateHeader = function (data) {
+  this.$$(data.name, '.overview').innerText = data.blocks.length + ' blocks (' + prettyBytes(data.bytes) + ')'
+}
+
+Stats.prototype.onpeerupdate = function (data) {
+  $('#peers').innerText = 'Connected to ' + data.peers + ' peer' + (data.peers === 1 ? '' : 's')
+}
+
+Stats.prototype.ondownload = function (data) {
+  this._get(data.name).downloadSpeed(data.bytes)
+  this.$$(data.name, '.block-' + data.index).style.backgroundColor = 'gray'
+}
+
+Stats.prototype.onupload = function (data) {
+  var self = this
+  this._get(data.name).uploadSpeed(data.bytes)
+  this.$$(data.name, '.block-' + data.index).style.backgroundColor = '#35b44f'
+  setTimeout(function () {
+    self.$$(data.name, '.block-' + data.index).style.backgroundColor = 'gray'
+  }, 500)
+}
+
+Stats.prototype.onfeed = function (data) {
+  var self = this
+  var blocks = this._get(data.name).blocks = data.blocks.length
+  self.updateHeader(data)
+
+  for (var i = 0; i < blocks; i++) {
+    self._appendDot(data.name, i)
+    if (data.blocks[i]) self.$$(data.name, '.block-' + i).style.backgroundColor = 'gray'
   }
+}
+
+Stats.prototype.onupdate = function (data) {
+  var self = this
+  self.updateHeader(data)
+
+  for (var i = self._get(data.name).blocks; i < data.blocks.length; i++) {
+    self._get(data.name).blocks++
+    self._appendDot(data.name, i)
+    if (data.blocks[i]) self.$$(data.name, '.block-' + i).style.backgroundColor = 'gray'
+  }
+}
+
+Stats.prototype._appendDot = function (name, i) {
+  var div = document.createElement('div')
+  div.className = 'dot block-' + i
+  this.$$(name, '.blocks').appendChild(div)
 }

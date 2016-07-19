@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var stats = require('./')
+var stats = require('./server.js')
 var http = require('http')
 var swarm = require('hyperdrive-archive-swarm')
 var minimist = require('minimist')
