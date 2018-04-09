@@ -2,7 +2,7 @@
 
 var stats = require('./server.js')
 var http = require('http')
-var swarm = require('hyperdrive-archive-swarm')
+var hyperdiscovery = require('hyperdiscovery')
 var minimist = require('minimist')
 
 var argv = minimist(process.argv.slice(2), {
@@ -12,31 +12,42 @@ var argv = minimist(process.argv.slice(2), {
 
 var hypercore = require('hypercore')
 var hyperdrive = require('hyperdrive')
-var memdb = require('memdb')
+var ram = require('random-access-memory')
 
-var core = hypercore(memdb())
-var f = core.createFeed(argv._[0])
-var archive = null
-
-if (argv.hyperdrive) {
-  archive = hyperdrive(memdb()).createArchive(argv._[0])
+var key = argv._[0]
+if (!key) {
+  console.error(
+    `Usage: node cli [--port=<port>] [--hyperdrive] \n` +
+    `          [--wait=<seconds>] <key>\n`
+  )
+  process.exit(1)
 }
 
-var server = http.createServer(stats(archive || f))
+var target = argv.hyperdrive ? hyperdrive(ram, key) : hypercore(ram, key)
+
+var server = http.createServer(stats(target))
 
 server.on('listening', function () {
-  console.log('Feed: ' + f.key.toString('hex'))
-  console.log('Stats listening on port ' + server.address().port)
+  target.ready(function () {
+    console.log('Feed/archive:', target.key.toString('hex'))
+    console.log('Stats listening on port ' + server.address().port)
 
-  if (argv.wait) setTimeout(join, Number(argv.wait))
-  else join()
+    if (argv.wait) setTimeout(join, Number(argv.wait) * 1000)
+    else join()
+  })
 })
 
-server.listen(argv.port || 10000)
+server.listen(argv.port || process.env.PORT || 10000)
 server.once('error', function () {
   server.listen(0)
 })
 
 function join () {
-  swarm(archive || f)
+  var sw = hyperdiscovery(target)
+  sw.on('connection', function (peer, type) {
+    console.log('connected to', sw.connections.length, 'peers')
+    peer.on('close', function () {
+      console.log('peer disconnected')
+    })
+  })
 }

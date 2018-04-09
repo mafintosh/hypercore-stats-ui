@@ -11,11 +11,10 @@ npm install hypercore-stats-ui
 ``` js
 var http = require('http')
 var stats = require('hypercore-stats-ui')
+var ram = require('random-access-memory')
 var hypercore = require('hypercore')
-var level = require('level')
 
-var core = hypercore(level('database'))
-var feed = core.createFeed('4e397d94d0f5df0e2268b2b7b23948b6dddfca66f91c2d452f404202e6d0f626')
+var feed = hypercore(ram, '72671c5004d3b956791b6ffca7f05025d62309feaf99cde04c6f434189694291')
 
 http.createServer(stats(feed)).listen(1000)
 ```
