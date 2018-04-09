@@ -1,5 +1,6 @@
 var corsify = require('corsify')
 var fs = require('fs')
+var path = require('path')
 var server = require('hypercore-stats-server')
 
 var cors = corsify({
@@ -18,7 +19,7 @@ module.exports = function (archive) {
 
 function file (name, type, res) {
   res.setHeader('Content-Type', type + '; charset=utf-8')
-  fs.readFile(__dirname + '/' + name, function (err, buf) {
+  fs.readFile(path.join(__dirname, name), function (err, buf) {
     if (err) return res.end()
     res.end(buf)
   })
