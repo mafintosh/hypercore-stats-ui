@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/mafintosh/hypercore-stats-ui",
   "devDependencies": {
-    "hypercore-stats-server": "^1.0.0",
     "hypercore": "^6.13.0",
+    "hypercore-stats-server": "^2.0.0",
     "hyperdiscovery": "^7.0.0",
     "hyperdrive": "^9.12.3",
     "minimist": "^1.2.0",
